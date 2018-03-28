@@ -1,0 +1,233 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>分销收益</title>
+    <script src="https://cdn.bootcss.com/vue/2.5.15/vue.min.js"></script>
+    <script src="../js/flexable.js"></script>
+</head>
+<link rel="stylesheet" href="https://unpkg.com/mint-ui/lib/style.css">
+<link rel="stylesheet" href="../css/iconfont.css">
+<!-- 引入组件库 -->
+<script src="https://unpkg.com/mint-ui/lib/index.js"></script>
+<script src="../js/jquery-3.3.1.min.js"></script>
+<body>
+    <div id="app">
+        <header><i class="mintui mintui-back" style="float: left;position: absolute;left:0.3rem;line-height:0.6rem"></i>分销收益</header>
+        <div class="banner">
+            <div class="add">
+                <a href="./index2.html?type=0">
+                    <ul>
+                        <li class="text-font" style="text-align: center"> 累计收益（元）</li>
+                        <li class="add-num" style="text-align: center">{{obj.unfreeze}}</li>
+                    </ul>
+                </a>
+            </div>
+            <div class="add-under">
+                <ul>
+                    <li>
+                        <a href="./index2.html?type=2" class="add-under-first">
+                            <p class="text-font" style="text-align: center">已解冻收益（元）</p>
+                            <p class="text-word" style="text-align: center">{{obj.unfreeze}}</p>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="./index2.html?type=1" class="add-under-second">
+                            <p class="text-font" style="text-align: center">待解冻收益（元）</p>
+                            <p class="text-word" style="text-align: center">{{obj.freeze}}</p>
+                        </a>
+                    </li>
+                    <li>
+                        <div class="add-under-third">
+                            <p class="text-font" style="text-align: center">余额（元）</p>
+                            <p class="text-word" style="text-align: center">{{obj.account}}</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="card" @click="toggle">
+            <ul >
+                <li>
+                    <i class="iconfont icon-bussinesscard"></i>
+                    <span>银行卡信息</span>
+                </li>
+                <li style="float:right;padding-right:0.5rem">
+                    <i class="iconfont icon-more"></i>
+                </li>
+            </ul>
+        </div>
+        <div class="toggle-comment" v-show="isshow"> 
+            <ul>
+                <li>银行名称<span>{{obj.bank}}</span></li>
+                <li>分行名称<span>{{obj.subbank}}</span></li>
+                <li>卡号<span>{{obj.idcardno}}</span></li>
+                <li>姓名<span>{{obj.name}}</span></li>
+            </ul>
+        </div>
+        <div class="footer">
+            <p>更多功能期待中</p>
+        </div>
+        <mt-indicator></mt-indicator>
+    </div>
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                isshow:false,
+                obj:{
+
+                }
+            },
+            methods:{
+                toggle(){
+                    this.isshow=!this.isshow
+                },
+                /*get data*/ 
+                public(){
+                    function ttes(){ 
+                        return new Promise(function(resolve,reject){ 
+                            $.ajax({
+                                type:"get", 
+                                url:'https://wyyapp.aspoontech.com/ask/order/getHosUserSum?callback=aa&uid=32',/*url写异域的请求地址*/ 
+                                dataType:"jsonp",/*加上datatype*/
+                                jsonpCallback:"aa",/*设置一个回调函数，名字随便取，和下面的函数里的名字相同就行*/ 
+                                success:function(response){ 
+                                    app.$indicator.close();
+                                    resolve(response);
+                                }
+                            }) 
+                        }) 
+                    }ttes().then(function(data){
+                        app.obj = data.data;
+                    })
+                },
+            },
+            created(){
+                this.$indicator.open({
+                    text: '加载中...',
+                    spinnerType: 'fading-circle'
+                    });
+                this.public();
+            }
+        })
+    </script>
+</body>
+</html>
+
+<style scopted>
+    .toggle-comment>ul{
+        width:100%;
+        overflow: hidden;
+    }
+    .toggle-comment>ul li{
+        width:100%;
+        height:0.3rem;
+        padding:0.3rem;
+        color:#888;
+    }
+    .toggle-comment>ul li span{
+        
+        padding-right:0.7rem;
+    }
+    header{
+        height: 0.6rem;
+        position: relative;
+        text-align: center;
+        font-size:0.5rem;
+        margin:0.4rem 0;
+    }
+    .banner {
+        position: relative;
+        width: 100%;
+        height: 5rem;
+        background: #2f9cfe
+    }
+  
+    .add-num {
+        color: #ffffff;
+        font-size: 0.7rem
+    }
+    .text-word {
+        color: #ffffff;
+        font-size: 0.4rem
+    }
+    .text-font {
+        color: #ffffff;
+        font-size: 0.3rem;
+    }
+    .add {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -73%);
+    }
+    .add-under{
+        width:100%;
+    }
+    .add-under ul li{
+        width:33%;
+        float:left;
+        display:inline-block;
+        margin-top:3.4rem;
+    }
+    .card {
+        width: 100%;
+        height: 1.6rem;
+        color:#888;
+        border-bottom: 0.01rem solid #dddddd;
+    }
+    .card::after {
+        display: block;
+        clear: both;
+        height: 0;
+        content: "";
+    }
+    .card>ul>li {
+        float: left;
+        line-height:1.6rem;
+        padding:0 0.5rem;
+    }
+    .card>ul>li>span{
+        padding-left:0.2rem;
+    }
+    .footer{
+        position:absolute;
+        text-align: center;
+        min-width:100%;
+        margin-top:7rem;
+    }
+    .footer p{
+        color:#888;
+        line-height:20px;
+    }
+    .footer p:after, .footer p:before{
+        background:#ccc;
+        content:"";
+        height:1px;
+        position:absolute;
+        top:50%;
+        width:10%;
+    }
+    .footer p:before{
+        left:26%;
+    }
+    .footer p:after{
+        right:26%;
+    }
+    .icon-bussinesscard{
+        display:inline-block;
+        font-size:26px;
+        vertical-align: bottom;
+        color:#2f9cfe;
+    }
+    .toggle-comment{
+        width: 100%;
+        position: absolute;
+    }
+    a:active{
+        text-decoration:none;
+}
+</style>

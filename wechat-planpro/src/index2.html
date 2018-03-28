@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>收益详情</title>
+    <script src="../js/flexable.js"></script>
+    <script src="../js/vue.2.1.6.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/mint-ui/lib/style.css">
+    <link rel="stylesheet" href="../css/iconfont.css">
+    <script src="../js/jquery-3.3.1.min.js"></script>
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/mint-ui/lib/index.js"></script>
+    <title>收益详情</title>
+</head>
+
+<body>
+    <div id="tab">
+            <!-- <header>订单详情</header> -->
+            <header><i class="mintui mintui-back" style="float: left;position: absolute;left:0.3rem;line-height:0.6rem" @click="back"></i>收益详情</header>
+        <!-- 导航 -->
+        <div class="tab_title">
+            <!-- 点击设置curId的值 -->
+            <a href="#" :class="{'cur':curId === 0}" @click="first">累计收益</a>
+            <a href="#" :class="{'cur':curId === 1}" @click="second">待解冻收益</a>
+            <a href="#" :class="{'cur':curId === 2}" @click="third">已解冻收益</a>
+
+        </div>
+        <!-- 内容 -->
+        <div class="tab_content">
+            <!-- 根据curId的值显示div,分别对应 -->
+            <div v-show="curId===0">
+                <p class="year">2018年</p>
+                <ul>
+                    <li v-for="item in arrs">
+                    <a :href="'./index3.html?pro='+item.prodname+'&price='+item.price+'&number='+item.num+'&tol='+item.tolprice+'&ratio='+item.ratio+'&info='+encodeURI(item.idinfo)+'&state='+encodeURI(item.state)+'&orderstate='+item.orderstate+'&time='+encodeURI(item.time)+'&order='+item.orderno" @click="list(item)">
+                            <img :src="item.img" class="list-pic">
+                            <div class="list-title"> 
+                                <p>{{item.prodname}}</p>
+                                <p style="color:#666">{{item.cflag}}  --  <span>{{item.orderstate}}</span> -- <span>{{item.buyer}}</span></p>
+                                <p style="color:#666">{{item.time}}</p>
+                            </div>
+                            <div class="list-price">
+                                <p>+{{item.tolprice}}</p>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div v-show="curId===1">
+                <p class="year">2018年</p>
+                <ul>   
+                    <li v-for="item in items">
+                        <a :href="'./index3.html?pro='+item.prodname+'&price='+item.price+'&number='+item.num+'&tol='+item.tolprice+'&ratio='+item.ratio+'&info='+encodeURI(item.idinfo)+'&state='+encodeURI(item.state)+'&orderstate='+item.orderstate+'&time='+encodeURI(item.time)+'&order='+item.orderno" @click="list(item)">
+                            <img :src="item.img" class="list-pic">
+                            <div class="list-title">    
+                                <p>{{item.prodname}}</p>
+                                <p style="color:#666">{{item.cflag}} -- <span>{{item.orderstate}}</span> -- <span>{{item.buyer}}</span></p>
+                                <p style="color:#666">{{item.time}}</p>
+                            </div>
+                            <div class="list-price">
+                                <p>+{{item.tolprice}}</p>
+                            </div>
+                        </a>
+                    </li>  
+                </ul>
+            </div>
+            <div v-show="curId===2" class="item-box">
+                <p class="year">2018年</p>
+                <ul>     
+                    <li v-for="item in add">
+                        <a :href="'./index3.html?pro='+item.prodname+'&price='+item.price+'&number='+item.num+'&tol='+item.tolprice+'&ratio='+item.ratio+'&info='+encodeURI(item.idinfo)+'&state='+encodeURI(item.state)+'&orderstate='+item.orderstate+'&time='+encodeURI(item.time)+'&order='+item.orderno" @click="list(item)">
+                            <img :src="item.img" class="list-pic">
+                            <div class="list-title">
+                                <p>{{item.prodname}}</p>
+                                <p style="color:#666">{{item.cflag}} -- <span>{{item.orderstate}}</span> -- <span>{{item.buyer}}</span></p>
+                                <p style="color:#666">{{item.time}}</p>
+                            </div>
+                            <div class="list-price">
+                                <p>+{{item.tolprice}}</p>
+                            </div>
+                        </a>
+                    </li>        
+                </ul>
+            </div>
+        </div>
+    </div>
+    <mt-indicator></mt-indicator>
+    <script>
+        var v = new Vue({
+            el: '#tab',
+            data: {
+                curId: 0,
+                arrs:[],
+                items:[],
+                add:[]
+            },
+            created(){
+               this.loading();
+               this.curId=Number(window.location.search.slice(-1));
+               if(Number(window.location.search.slice(-1)) === 0){
+                    this.public(0,'arrs');
+                }if(Number(window.location.search.slice(-1)) === 1){
+                    this.public(1,'items');
+                }if(Number(window.location.search.slice(-1)) === 2){
+                    this.public(2,'add');
+                }
+            },
+            computed: {},
+            methods: {
+                loading(){
+                    this.$indicator.open({
+                    text: '加载中...',
+                    spinnerType: 'fading-circle'
+                    });
+                },
+                public(i,n){
+                    function ttes(){ 
+                        return new Promise(function(resolve,reject){ 
+                            $.ajax({
+                                type:"post", 
+                                url:'https://wyyapp.aspoontech.com/ask/order/getHosUserflow?Integertag='+ i +'&&callback=aaaa',/*url写异域的请求地址*/ 
+                                dataType:"jsonp",/*加上datatype*/
+                                jsonpCallback:"aaaa",/*设置一个回调函数，名字随便取，和下面的函数里的名字相同就行*/ 
+                                // scriptCharset: 'utf-8',
+                                success:function(response){ 
+                                    resolve(response);
+                                }
+                            }) 
+                        }) 
+                    }ttes().then(function(data){
+                        v.$indicator.close();
+                        console.log(data.data);
+                        v[n] = data.data;
+                    })
+                },
+                first(){
+                    this.curId = 0;
+                    this.loading()
+                    this.public(0,'arrs');
+                },
+                second(){
+                    this.curId = 1;
+                    this.loading()
+                    this.public(1,'items');
+                },
+                third(){
+                    this.curId = 2;
+                    this.loading()
+                    this.public(2,'add');
+                },
+                /* list(item){
+                    console.log(item);
+                }, */
+                back(){
+                    window.history.back(); 
+                }
+            },
+            mounted: function () {}
+        })
+    </script>
+</body>
+
+</html>
+<style scoped>
+    a{
+        text-decoration: none;
+        color:#000;
+    }
+    header{
+        text-align: center;
+        font-size:0.5rem;
+        margin:0.4rem 0;
+    }
+    #tab .list-pic{
+        float: left;
+    }
+   #tab .list-title{
+        float:left;
+        margin-left: 0rem;
+        margin-top: 0.3rem;
+   }
+   #tab .list-price{
+        float: right;
+        margin-top: 1rem;
+        margin-right:1rem;
+        color:#000;
+        font-weight: 500;
+   }
+    .tab_title {
+        font-size: 0;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        overflow: hidden;
+    }
+    .tab_title a {
+        display: inline-block;
+        position: relative;
+        height: 40px;
+        line-height: 40px;
+        font-size: 16px; 
+        flex: 1;
+        text-align: center;
+        color: #000;
+        text-decoration: none;
+    }
+    .tab_title .cur {
+        color: #09f;
+    }
+    .tab_title .cur:after {
+        content: "";
+        position: absolute;
+        border-bottom: 0.1rem solid #09f;
+        width: 30%;
+        left: 35%;
+        bottom: 0rem;
+    }  
+    .tab_content .year{
+        height:1.4rem;
+        background-color:#dedede;
+        padding-left:0.8rem;
+        line-height:1.4rem;
+    }
+    .tab_content ul{
+        width:100%;
+        overflow:hidden;
+    }
+    .tab_content ul li{ 
+        width:100%; 
+        height:2rem;
+        border-bottom:1px solid #dedede; 
+    }
+    .tab_content ul li>a{ 
+        display: block;
+        width:100%; 
+        height:2rem;
+        border-bottom:1px solid #dedede;
+    }
+    .tab_content img{
+        width:2rem;
+    }
+    .tab_content .tab_content{
+        float:left;
+    }
+</style>

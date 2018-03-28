@@ -1,0 +1,307 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>手机验证</title>
+    <script src="https://cdn.bootcss.com/vue/2.5.15/vue.min.js"></script>
+    <script src="../js/flexable.js"></script>
+</head>
+<link rel="stylesheet" href="https://unpkg.com/mint-ui/lib/style.css">
+<link rel="stylesheet" href="../css/iconfont.css">
+<!-- 引入组件库 -->
+<script src="https://unpkg.com/mint-ui/lib/index.js"></script>
+<script src="../js/jquery-3.3.1.min.js"></script>
+
+<body>
+    <div id="app">
+        <form>
+            <div class="inputbox inputbox2" style="border-top: 1px solid #dedede;">
+                <input maxlength="11" type="tel" name="userPhone" id="phone" @blur="upperCase()" placeholder="请输入手机号码">
+            </div>
+            <div class="inputbox">
+                <input maxlength="6" class="yanzhengcode" type="tel" name="userCode" value="" placeholder="请输入验证码" id="testcode" @blur="compares()">
+                <button id="codeBtn" type="button" class="getcode" @click="getCode">
+                    <span v-if="sendMsgDisabled">{{time+'秒后获取'}}</span>
+                    <span v-if="!sendMsgDisabled">发送验证码</span>
+                </button>
+            </div>
+            <button type="button" class="applyBtn" @click="getbtn">注册</button>
+        </form>
+        <!-- <div class="login">
+            <h1>注册页面</h1>
+            <label>手机号码:
+                <input type="tel" placeholder="请输入手机号码" id="phone" @blur="upperCase()">
+            </label>
+            <br>
+            <label>验证码:
+                <input type="number" class="yanzhengcode" placeholder="请输入手机验证码" id="testcode" @blur="compares()">
+                <mt-button class="getcode" @click="getCode">
+                    <span v-if="sendMsgDisabled">{{time+'秒后获取'}}</span>
+                    <span v-if="!sendMsgDisabled">发送验证码</span>
+                </mt-button>
+            </label>
+            <button @click="getbtn">注册</button>
+        </div> -->
+    </div>
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                cans: false,
+                time: 120, // 发送验证码倒计时
+                sendMsgDisabled: false
+            },
+            beforeCreate(){
+                flag = true;
+            },
+            created() {
+                this.phone();
+                this.Code("code");              
+            },
+            methods: {
+                Code(name) {
+                    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+                    var r = window.location.search.substr(1).match(reg);
+                    if (r != null) {
+                        code = unescape(r[2]);
+                        alert(code);
+                    } else {
+                        alert('没有找到参数:' + name);
+                    }
+                    return code;
+                },
+                compares() {
+                    var testcode = document.getElementById('testcode').value;
+                    if (testcode.length < 4) {
+                        return this.$toast("验证码有误");
+                    }
+                },
+                getCode() {
+                    if (document.getElementById('phone').value.length == 0) {
+                        this.$toast('手机号不能为空');
+                        return false;
+                    };
+                    if (!(/^1[34578]\d{9}$/.test(document.getElementById('phone').value))) {
+                        this.$toast("手机号码有误，请重填");
+                        return false;
+                    };
+                    
+                    let me = this;
+                    me.sendMsgDisabled = true;
+                    let interval = window.setInterval(function () {
+                        if ((me.time--) <= 0) {
+                            me.time = 60;
+                            me.sendMsgDisabled = false;
+                            window.clearInterval(interval);
+                        }
+                    }, 1000);
+                    if (this.cans) {
+                        this.sendMsgDisabled = true;
+                        if(flag == true){
+                            $.ajax({
+                                type: "post",
+                                data: {
+                                    'phone': $('#phone').val(),
+                                    'weixincode': code,
+                                },
+                                url: 'https://wyyapp.aspoontech.com/ask/order/sendsmscode',/*url写异域的请求地址*/
+                                dataType: "jsonp",/*加上datatype*/
+                                success: function (res) {
+                                    openid = res.openid;
+                                    unionid = res.unionid;
+                                    headimg = res.headimg;
+                                    flag = false;
+                                    app.$toast("验证码已发送");
+                                },
+                                error: function () {
+                                    alert('失败');
+                                }
+                            })
+                        }else{
+                            $.ajax({
+                                type: "post",
+                                data: {
+                                    'phone': $('#phone').val(),
+                                    /* 'weixincode': code, */
+                                    'openid':openid,
+                                    'unionid':unionid,
+                                    'headimg':headimg
+                                },
+                                url: 'https://wyyapp.aspoontech.com/ask/order/sendsmscode',/*url写异域的请求地址*/
+                                dataType: "jsonp",/*加上datatype*/
+                                success: function (res) {
+                                    flag = false;
+                                    app.$toast("验证码已发送");
+                                },
+                                error: function () {
+                                    alert('失败');
+                                }
+                            })
+                        }
+                    }
+                },
+                getbtn(){
+                     $.ajax({
+                        type: "post",
+                        data: {
+                            'phone': $('#phone').val(),
+                            'verify': $('.yanzhengcode').val(),
+                            'openid': openid,
+                            'unionid': unionid,
+                            'headimg': headimg
+                        },
+                        url: 'https://wyyapp.aspoontech.com/ask/order/regHospitalH5',/*url写异域的请求地址*/
+                        dataType: "jsonp",/*加上datatype*/
+                        success: function (res) {
+                            alert('getbtn成功');
+                            alert(res.data);
+                            alert(res.status);
+                            alert(res.error);
+                            uid = res.data.uid;
+                            token = res.data.token;
+                            window.location.href = 'index.html?uid=' + uid + '&token=' + token;
+                        },
+                        error: function () {
+                            alert('getbtn失败');
+                        }
+                    })
+                },
+                upperCase() {
+                    var phone = document.getElementById('phone').value;
+                    if (!(/^1[34578]\d{9}$/.test(phone))) {
+                        this.$toast("手机号码有误，请重填");
+                        return false;
+                    } else {
+                        this.cans = true
+                    }
+                },
+                phone() {
+                    /* console.log(window.location.search.split("=")[1]) */
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
+
+<style scopted>
+    body {
+        position: relative;
+    }
+    #app{
+        overflow: hidden;
+    }
+    .login,
+    .register {
+        width: 66%;
+        height: 50%;
+        overflow: auto;
+        position: absolute;
+        margin: auto;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+    }
+
+    h1 {
+        text-align: center;
+        line-height: 1rem;
+        font-size: 16px;
+    }
+
+    form{
+        width: 100%;
+        height: auto;
+        padding-top: 1.1rem;
+        text-align: center;
+    }
+    .inputbox {
+        width: 100%;
+        padding: 0.4rem 0.2rem;
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 2px;
+        border-bottom: 1px solid #e9e9e9;
+    }
+    .inputbox2 input {
+        width: 3.29rem;
+    }
+    .inputbox input {
+        border: none;
+        box-sizing: border-box;
+        height: .68rem;
+        border: 0;
+        text-indent: 15px;
+        font-size: .36rem;
+        color: #333333;
+        float: left;
+    }
+    .inputbox button {
+        width: 3.28rem;
+        height: .58rem;
+        border: 0;
+        background: #fff;
+        color: #09f;
+        float: right;
+        padding-right: 0.7rem;
+        font-size: 14px;
+    }
+    .applyBtn {
+        margin: 10% auto;
+        width: 80%;
+        border: none;
+        height: 5%;
+        background: #09f;
+        color: #fff;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+   /*  input{
+        border: 0.05rem solid #dedede;
+        width:100%;
+        height:0.8rem;
+        margin-top: 0.2rem;
+        border-radius: 5px;
+        padding-left:0.2rem;
+    } */
+    /* .yanzhengcode{
+        border: 0.05rem solid #dedede;
+        width:66%;
+        height:0.8rem;
+        margin-top: 0.2rem;
+        border-radius: 5px;
+        padding-left:0.2rem;
+        display:block;
+    }
+    .getcode{
+        width: 1.7rem;
+        height: 0.8rem;
+        line-height: 0.8rem;
+        border-radius: 5px;
+        background-color: #ccc;
+        color: #fff;
+        margin-top: -16%;
+        margin-left: 16%;
+    } */
+
+   /*  button {
+        text-align: center;
+        background-color: #09f;
+        color: #fff;
+        border: none;
+        width: 90%;
+        height: 0.8rem;
+        border-radius: 5px;
+        font-size: 14px;
+        margin-top: 0.2rem;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-left: -45%;
+        margin-top: 0.6rem; */
+    }
+</style>
